@@ -1,14 +1,18 @@
 import math
-from math import sqrt
+from math import sqrt, hypot
 
 
 class Vector:
     def __init__(self, *pos):
-        self.x = pos[0]
-        self.y = pos[1]
+        if len(pos) == 1:
+            self.x = pos[0][0]
+            self.y = pos[0][1]
+        else:
+            self.x = pos[0]
+            self.y = pos[1]
 
     def dist(self, other):
-        return sqrt((self.x - other.x)**2 + (self.y - other.y)**2)
+        return hypot(self.x - other.x, self.y - other.y)
 
     def scal(self, other):
         return self.x * other.x + self.y * other.y
@@ -28,11 +32,17 @@ class Vector:
     def __mul__(self, scalar):
         return Vector(self.x * scalar, self.y * scalar)
 
+    def __rmul__(self, scalar):
+        return Vector(self.x * scalar, self.y * scalar)
+
     def __truediv__(self, scalar):
         return Vector(self.x / scalar, self.y / scalar)
 
     def __neg__(self):
         return Vector(-self.x, -self.y)
+
+    def __iter__(self):
+        return (s for s in (self.x, self.y))
 
     def rotate(self, digree):
         pi_angle = (digree / 360) * math.pi
