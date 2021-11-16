@@ -1,1 +1,6 @@
 FPS = 60
+WIDTH = 700
+HEIGHT = 700
+DEF_SIZE = 11
+RED = (255, 0, 0)
+BLUE = (0, 0, 255)
