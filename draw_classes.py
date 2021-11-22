@@ -1,5 +1,5 @@
 import math
-from math import sqrt, hypot
+from math import hypot
 
 
 class Vector:

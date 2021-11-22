@@ -48,7 +48,7 @@ def get_hex_a(size):
     right_up_point = 2 * center - left_down_point
     field_width = right_up_point.x - left_down_point.x
     a2_count = (size + 1)//2
-    a1_count = size // 2
+    a1_count = size // 2 + (0.5 if size % 2 == 0 else 0)
     return field_width / (a2_count * 2 + a1_count)
 
 
@@ -63,3 +63,8 @@ def is_in_hex(pos, x, y, a):
         sum += triangle_s(points[i], points[i + 1], point)
     S = a * a * 3 * sqrt(3) / 2
     return abs(S - sum) < 1e-5
+
+def draw_text(screen, pos, text, size, color):
+    font = pg.font.Font(None, size)
+    text = font.render(text, True, color)
+    screen.blit(text, pos)

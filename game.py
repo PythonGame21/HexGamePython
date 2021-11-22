@@ -2,23 +2,24 @@ from consts import *
 from draw_classes import Vector as vec
 from draw_funks import *
 from state_class import State
+from button import Button
 import pygame as pg
 
 
 class Game:
-    def __init__(self, size):
-        pg.init()
-        pg.mixer.init()
-        self.screen = pg.display.set_mode((WIDTH, HEIGHT))
+    def __init__(self, size, screen, mode):
+        self.screen = screen
         self.clock = pg.time.Clock()
         self.size = size
         self.state = [[State.FREE for _ in range(self.size)] for __ in range(self.size)]
-        self.hex_a = get_hex_a(size) * 0.995
+        self.hex_a = get_hex_a(size)
         center = vec(350, 400)
         left_up_point = center + vec(-FIELD_R, 0).rotate(-60) + vec(0, -2 * FIELD_R)
         self.origin = vec(left_up_point.x + self.hex_a, left_up_point.y + self.hex_a * sqrt(3))
         self.move_count = 0
-        self.in_game = True
+        self.mode = mode
+        self.go_menu_button = Button((0, 0), 50, 50, '<', (7, -7), 90)
+
 
     def run_game(self):
         run = True
@@ -29,9 +30,13 @@ class Game:
                 if event.type == pg.QUIT:
                     run = False
                 elif event.type == pg.MOUSEBUTTONDOWN:
+                    if self.go_menu_button.in_boards(mouse_pos):
+                        return run
                     self.do_move(mouse_pos)
             self.screen.fill(WHITE)
             draw_background_rhomb(self.screen)
+            self.go_menu_button.draw(self.screen)
+            self.go_menu_button.highlight(mouse_pos)
             self.highlight(mouse_pos)
             self.draw_hexes()
             pg.display.flip()

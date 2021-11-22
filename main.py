@@ -1,15 +1,14 @@
 from game import Game
+from menu import Menu
 from consts import *
 import pygame as pg
 
 
-game = Game(11)
-
+pg.init()
+menu = Menu()
 run = True
 while run:
-    game.clock.tick(FPS)
-    if game.in_game:
-        run = game.run_game()
+    run = menu.run_start_menu()
     for event in pg.event.get():
         if event.type == pg.QUIT:
             run = False
