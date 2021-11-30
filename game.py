@@ -4,6 +4,7 @@ from draw_funks import *
 from state_class import State
 from button import Button
 import pygame as pg
+from collections import deque
 
 
 class Game:
@@ -19,6 +20,9 @@ class Game:
         self.move_count = 0
         self.mode = mode
         self.go_menu_button = Button((0, 0), 50, 50, '<', (7, -7), 90)
+        self.end_game_button = Button((235, 400), 230, 70, 'Menu', (265, 405), 90)
+        self.is_end = False
+        self.winner = 0
 
 
     def run_game(self):
@@ -30,15 +34,26 @@ class Game:
                 if event.type == pg.QUIT:
                     run = False
                 elif event.type == pg.MOUSEBUTTONDOWN:
-                    if self.go_menu_button.in_boards(mouse_pos):
-                        return run
-                    self.do_move(mouse_pos)
+                    if self.is_end:
+                        if self.end_game_button.in_boards(mouse_pos):
+                            return run
+                    else:
+                        if self.go_menu_button.in_boards(mouse_pos):
+                            return run
+                        self.do_move(mouse_pos)
             self.screen.fill(WHITE)
             draw_background_rhomb(self.screen)
-            self.go_menu_button.draw(self.screen)
-            self.go_menu_button.highlight(mouse_pos)
-            self.highlight(mouse_pos)
             self.draw_hexes()
+            self.go_menu_button.draw(self.screen)
+            if not self.is_end:
+                self.winner = self.check_win()
+                if self.winner != 0:
+                    self.is_end = True
+            if self.is_end:
+                self.show_end_game(self.winner, mouse_pos)
+            else:
+                self.go_menu_button.highlight(mouse_pos)
+                self.highlight(mouse_pos)
             pg.display.flip()
         return run
 
@@ -84,4 +99,46 @@ class Game:
                 elif self.state[a][b] == State.LIGHT and not is_in_hex(mouse_pos, x, y, self.hex_a):
                     self.state[a][b] = State.FREE
 
+    def check_win(self):
+        for y in range(self.size):
+            if self.state[0][y] == State.P1:
+                if self.BFS_is_win((0, y), State.P1, (0, self.size - 1)):
+                    return 1
+        for x in range(self.size):
+            if self.state[x][0] == State.P2:
+                if self.BFS_is_win((x, 0), State.P2, (1, self.size - 1)):
+                    return 2
+        return 0
 
+    def BFS_is_win(self, root, p, w_c):
+        visited = [[False for _ in range(len(self.state[0]))] for __ in range(len(self.state))]
+        visited[root[0]][root[1]] = True
+        queue = deque([root])
+        while queue:
+            v = queue.popleft()
+            for dx in range(-1, 2):
+                for dy in range(-1, 2):
+                    if dx == 0 and dy == 0 or abs(dx + dy) == 2:
+                        continue
+                    n_p = (v[0] + dx, v[1] + dy)
+                    if self.in_bounds(n_p) and not visited[n_p[0]][n_p[1]] and self.state[n_p[0]][n_p[1]] == p:
+                        if n_p[w_c[0]] == w_c[1]:
+                            return True
+                        visited[n_p[0]][n_p[1]] = True
+                        queue.append(n_p)
+        return False
+
+    def in_bounds(self, pos):
+        return 0 <= pos[0] < len(self.state) and 0 <= pos[1] < len(self.state[0])
+
+    def shadow(self):
+        shadow = pg.Surface((WIDTH, HEIGHT))
+        shadow.set_alpha(200)
+        self.screen.blit(shadow, (0, 0))
+
+    def show_end_game(self, p, mouse_pos):
+        self.shadow()
+        res = 'RED' if p == 1 else 'BLUE'
+        draw_text(self.screen, (160, 300), f'Player {res} win', 70, RED if p == 1 else BLUE)
+        self.end_game_button.draw(self.screen)
+        self.end_game_button.highlight(mouse_pos)

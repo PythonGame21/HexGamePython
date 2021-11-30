@@ -14,7 +14,7 @@ class Menu():
         self.size_inc_button = Button((457, 450), 50, 50, '+', (465, 441), 90, self.inc_size)
         self.size_dec_button = Button((457, 550), 50, 50, '-', (472, 541), 90, self.dec_size)
         self.change_mode_button = Button((350, 680), 150, 50, 'change', (360, 685), 50, self.change_mode)
-        self.size = 11
+        self.size = 4
         self.mode = 0
 
     def run_start_menu(self):
