@@ -52,8 +52,10 @@ class Menu():
         draw_text(self.screen, (200, 500), str.format('Field size: {0}', self.size), 70, BLACK)
         if self.mode == 0:
             mode = 'Player1 vs Player2'
+        elif self.mode == 1:
+            mode = 'Player vs EazyComp'
         else:
-            mode = 'Player vs Computer'
+            mode = 'Player vs HardComp'
         draw_text(self.screen, (50, 630), str.format('Mode: {0}', mode), 60, BLACK)
 
     def create_game_and_run(self):
@@ -71,4 +73,4 @@ class Menu():
             self.size = 20
 
     def change_mode(self):
-        self.mode = (self.mode + 1) % 2
+        self.mode = (self.mode + 1) % 3

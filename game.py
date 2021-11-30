@@ -5,6 +5,7 @@ from state_class import State
 from button import Button
 import pygame as pg
 from collections import deque
+from II import EzII, HdII
 
 
 class Game:
@@ -21,6 +22,7 @@ class Game:
         self.mode = mode
         self.go_menu_button = Button((0, 0), 50, 50, '<', (7, -7), 90)
         self.end_game_button = Button((235, 400), 230, 70, 'Menu', (265, 405), 90)
+        self.last_player_move = None
         self.is_end = False
         self.winner = 0
 
@@ -40,7 +42,14 @@ class Game:
                     else:
                         if self.go_menu_button.in_boards(mouse_pos):
                             return run
-                        self.do_move(mouse_pos)
+                        else:
+                            self.do_move(mouse_pos)
+            if self.mode != 0 and self.move_count % 2 != 0:
+                if self.mode == 1:
+                    EzII.find_move(self.state)
+                else:
+                    HdII.find_move(self.state, self.last_player_move)
+                self.move_count += 1
             self.screen.fill(WHITE)
             draw_background_rhomb(self.screen)
             self.draw_hexes()
@@ -64,6 +73,7 @@ class Game:
                 if self.state[a][b] == State.LIGHT and is_in_hex(mouse_pos, x, y, self.hex_a):
                     if self.move_count % 2 == 0:
                         self.state[a][b] = State.P1
+                        self.last_player_move = (a, b)
                     else:
                         self.state[a][b] = State.P2
                     self.move_count += 1
