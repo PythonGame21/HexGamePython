@@ -20,11 +20,14 @@ class Game:
         self.origin = vec(left_up_point.x + self.hex_a, left_up_point.y + self.hex_a * sqrt(3))
         self.move_count = 0
         self.mode = mode
+        if self.mode == 2:
+            self.p1_hist = []
+            self.hII = HdII(self.state, self.p1_hist)
         self.go_menu_button = Button((0, 0), 50, 50, '<', (7, -7), 90)
         self.end_game_button = Button((235, 400), 230, 70, 'Menu', (265, 405), 90)
-        self.last_player_move = None
         self.is_end = False
         self.winner = 0
+
 
 
     def run_game(self):
@@ -46,9 +49,9 @@ class Game:
                             self.do_move(mouse_pos)
             if self.mode != 0 and self.move_count % 2 != 0:
                 if self.mode == 1:
-                    EzII.find_move(self.state)
+                    EzII.do_move(self.state)
                 else:
-                    HdII.find_move(self.state, self.last_player_move)
+                    self.hII.do_move()
                 self.move_count += 1
             self.screen.fill(WHITE)
             draw_background_rhomb(self.screen)
@@ -73,7 +76,8 @@ class Game:
                 if self.state[a][b] == State.LIGHT and is_in_hex(mouse_pos, x, y, self.hex_a):
                     if self.move_count % 2 == 0:
                         self.state[a][b] = State.P1
-                        self.last_player_move = (a, b)
+                        if self.mode == 2:
+                            self.p1_hist.append((a,b))
                     else:
                         self.state[a][b] = State.P2
                     self.move_count += 1
