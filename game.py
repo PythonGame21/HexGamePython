@@ -6,6 +6,7 @@ from button import Button
 import pygame as pg
 from collections import deque
 from II import EzII, HdII
+import pickle
 
 
 class Game:
@@ -20,11 +21,12 @@ class Game:
         self.origin = vec(left_up_point.x + self.hex_a, left_up_point.y + self.hex_a * sqrt(3))
         self.move_count = 0
         self.mode = mode
-        if self.mode == 2:
-            self.p1_hist = []
-            self.hII = HdII(self.state, self.p1_hist)
+        self.move_hist = []
+        self.hII = HdII(self.state, self.move_hist)
         self.go_menu_button = Button((0, 0), 50, 50, '<', (7, -7), 90)
+        self.undu_button = Button((550, 0), 150, 70, 'Undo', (585, 20), 50)
         self.end_game_button = Button((235, 400), 230, 70, 'Menu', (265, 405), 90)
+        self.save_button = Button((0, 730), 150, 70, 'Save', (30, 755), 50)
         self.is_end = False
         self.winner = 0
 
@@ -45,11 +47,15 @@ class Game:
                     else:
                         if self.go_menu_button.in_boards(mouse_pos):
                             return run
+                        elif self.undu_button.in_boards(mouse_pos):
+                            self.undo_move()
+                        elif self.save_button.in_boards(mouse_pos):
+                            self.save()
                         else:
                             self.do_move(mouse_pos)
             if self.mode != 0 and self.move_count % 2 != 0:
                 if self.mode == 1:
-                    EzII.do_move(self.state)
+                    EzII.do_move(self.state, self.move_hist)
                 else:
                     self.hII.do_move()
                 self.move_count += 1
@@ -57,6 +63,8 @@ class Game:
             draw_background_rhomb(self.screen)
             self.draw_hexes()
             self.go_menu_button.draw(self.screen)
+            self.undu_button.draw(self.screen)
+            self.save_button.draw(self.screen)
             if not self.is_end:
                 self.winner = self.check_win()
                 if self.winner != 0:
@@ -65,6 +73,8 @@ class Game:
                 self.show_end_game(self.winner, mouse_pos)
             else:
                 self.go_menu_button.highlight(mouse_pos)
+                self.undu_button.highlight(mouse_pos)
+                self.save_button.highlight(mouse_pos)
                 self.highlight(mouse_pos)
             pg.display.flip()
         return run
@@ -76,12 +86,25 @@ class Game:
                 if self.state[a][b] == State.LIGHT and is_in_hex(mouse_pos, x, y, self.hex_a):
                     if self.move_count % 2 == 0:
                         self.state[a][b] = State.P1
-                        if self.mode == 2:
-                            self.p1_hist.append((a,b))
                     else:
                         self.state[a][b] = State.P2
+                    self.move_hist.append((a, b))
                     self.move_count += 1
                     return
+
+    def undo_move(self):
+        if len(self.move_hist) == 0:
+            return
+        if self.mode == 0:
+            m = self.move_hist.pop()
+            self.state[m[0]][m[1]] = State.FREE
+            self.move_count -= 1
+        else:
+            m1 = self.move_hist.pop()
+            m2 = self.move_hist.pop()
+            self.state[m1[0]][m1[1]] = State.FREE
+            self.state[m2[0]][m2[1]] = State.FREE
+            self.move_count -= 2
 
     def coords(self, a, b):
         x = self.origin.x + a * 1.5 * self.hex_a
@@ -156,3 +179,30 @@ class Game:
         draw_text(self.screen, (160, 300), f'Player {res} win', 70, RED if p == 1 else BLUE)
         self.end_game_button.draw(self.screen)
         self.end_game_button.highlight(mouse_pos)
+
+    def __getstate__(self) -> dict:
+        state = {'st': self.state,
+                 'mc': self.move_count,
+                 'mh': self.move_hist,
+                 'mode': self.mode,
+                 'ise': self.is_end,
+                 'w': self.winner}
+        return state
+
+    def __setstate__(self, state):
+        self.state = state['st']
+        self.move_count = state['mc']
+        self.move_hist = state['mh']
+        self.mode = state['mode']
+        self.is_end = state['ise']
+        self.winner = state['w']
+        self.hII.update(self.state, self.move_hist)
+
+    def save(self):
+        with open("save.pkl", "wb") as sv:
+            pickle.dump(self.__getstate__(), sv)
+
+    def load(self):
+        with open("save.pkl", "rb") as sv:
+            info = pickle.load(sv)
+            self.__setstate__(info)

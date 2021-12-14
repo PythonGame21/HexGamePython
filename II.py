@@ -5,13 +5,14 @@ from collections import deque
 
 class EzII:
     @staticmethod
-    def do_move(state):
+    def do_move(state, move_his):
         x = randint(0, len(state) - 1)
         y = randint(0, len(state[0]) - 1)
         while state[x][y] != State.FREE:
             x = randint(0, len(state) - 1)
             y = randint(0, len(state[0]) - 1)
         state[x][y] = State.P2
+        move_his.append((x, y))
 
 
 class HdII:
@@ -19,16 +20,24 @@ class HdII:
         self.state = state
         self.his = his
 
+    def update(self, state, his):
+        self.state = state
+        self.his = his
+
     def in_bounds(self, pos):
         return 0 <= pos[0] < len(self.state) and 0 <= pos[1] < len(self.state[0])
 
     def do_move(self):
-        if self.one_m_win():
+        m = self.one_m_win()
+        if m != None:
+            self.his.append(m)
             return
-        for m in self.his[::-1]:
-            if self.f_m_point(m):
+        for i in self.his[::-2]:
+            m = self.f_m_point(i)
+            if m != None:
+                self.his.append(m)
                 return
-        EzII.do_move(self.state)
+        EzII.do_move(self.state, self.his)
 
     def f_m_point(self, p1m):
         return self.check_around(p1m)
@@ -40,31 +49,31 @@ class HdII:
             if self.state[x + 1][y - 1] == State.FREE and self.state[x + 1][y] == State.FREE:
                 if self.in_bounds((x + 2, y - 1)) and self.state[x + 2][y - 1] == State.FREE:
                     self.state[x + 2][y - 1] = State.P2
-                    return True
+                    return (x+2, y-1)
             if self.state[x + 1][y - 1] == State.P2 and self.state[x + 1][y] == State.FREE:
                 self.state[x + 1][y] = State.P2
-                return True
+                return (x+1, y)
             if self.state[x + 1][y - 1] == State.FREE and self.state[x + 1][y] == State.P2:
                 self.state[x + 1][y - 1] = State.P2
-                return True
+                return (x+1, y-1)
         elif self.in_bounds((x + 1, y)) and self.state[x + 1][y] == State.FREE:
             self.state[x + 1][y] = State.P2
-            return True
+            return (x+1, y)
         if self.in_bounds((x - 1, y + 1)):
             if self.state[x - 1][y] == State.FREE and self.state[x - 1][y + 1] == State.FREE:
                 if self.in_bounds((x - 2, y + 1)) and self.state[x - 2][y + 1] == State.FREE:
                     self.state[x - 2][y + 1] = State.P2
-                    return True
+                    return (x-2, y+1)
             if self.state[x - 1][y] == State.P2 and self.state[x - 1][y + 1] == State.FREE:
                 self.state[x - 1][y + 1] = State.P2
-                return True
+                return (x-1, y+1)
             if self.state[x - 1][y] == State.FREE and self.state[x - 1][y + 1] == State.P2:
                 self.state[x - 1][y] = State.P2
-                return True
+                return (x-1, y)
         elif self.in_bounds((x - 1, y)) and self.state[x - 1][y] == State.FREE:
             self.state[x - 1][y] = State.P2
-            return True
-        return False
+            return (x-1, y)
+        return None
 
     def one_m_win(self):
         state = self.state
@@ -99,13 +108,13 @@ class HdII:
                 DFS_is_win(state, visited, (x, 0), len(state[0]) - 1, None, globs)
                 if globs[0]:
                     state[globs[1][0]][globs[1][1]] = State.P2
-                    return True
+                    return (globs[1][0], globs[1][1])
             if state[x][-1] == State.P2:
                 visited = set()
                 globs = [False, None]
                 DFS_is_win(state, visited, (x, len(state[0]) - 1), 0, None, globs)
                 if globs[0]:
                     state[globs[1][0]][globs[1][1]] = State.P2
-                    return True
-        return False
+                    return (globs[1][0], globs[1][1])
+        return None
 

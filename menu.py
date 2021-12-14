@@ -11,6 +11,7 @@ class Menu():
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
         self.clock = pg.time.Clock()
         self.play_button = Button((200, 250), 300, 100, 'Play', (305, 275), 65, self.create_game_and_run)
+        self.continue_button = Button((200, 350), 300, 100, 'Continue', (250, 380), 65, self.continue_game)
         self.size_inc_button = Button((457, 450), 50, 50, '+', (465, 441), 90, self.inc_size)
         self.size_dec_button = Button((457, 550), 50, 50, '-', (472, 541), 90, self.dec_size)
         self.change_mode_button = Button((350, 680), 150, 50, 'change', (360, 685), 50, self.change_mode)
@@ -28,6 +29,8 @@ class Menu():
                 elif event.type == pg.MOUSEBUTTONDOWN:
                     if self.play_button.in_boards(mouse_pos):
                         run = self.play_button.click()
+                    elif self.continue_button.in_boards(mouse_pos):
+                        self.continue_button.click()
                     elif self.size_inc_button.in_boards(mouse_pos):
                         self.size_inc_button.click()
                     elif self.size_dec_button.in_boards(mouse_pos):
@@ -39,6 +42,8 @@ class Menu():
             self.draw_settings()
             self.play_button.draw(self.screen)
             self.play_button.highlight(mouse_pos)
+            self.continue_button.draw(self.screen)
+            self.continue_button.highlight(mouse_pos)
             self.size_inc_button.draw(self.screen)
             self.size_inc_button.highlight(mouse_pos)
             self.size_dec_button.draw(self.screen)
@@ -60,6 +65,11 @@ class Menu():
 
     def create_game_and_run(self):
         game = Game(self.size, self.screen, self.mode)
+        return game.run_game()
+
+    def continue_game(self):
+        game = Game(self.size, self.screen, self.mode)
+        game.load()
         return game.run_game()
 
     def inc_size(self):
